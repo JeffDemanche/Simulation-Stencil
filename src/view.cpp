@@ -14,7 +14,9 @@ View::View(QWidget *parent) : QGLWidget(ViewFormat(), parent),
     m_time(), m_timer(),
     m_forward(), m_sideways(), m_vertical(),
     m_lastX(), m_lastY(),
-    m_capture(false)
+    m_capture(false),
+    m_paused(true),
+    m_castPushForce(0)
 {
     // View needs all mouse move events, not just mouse drag events
     setMouseTracking(true);
@@ -98,7 +100,7 @@ void View::mouseMoveEvent(QMouseEvent *event)
     m_lastY = event->y();
 }
 
-void View::mouseReleaseEvent(QMouseEvent *)
+void View::mouseReleaseEvent(QMouseEvent *e)
 {
     m_capture = false;
 }
@@ -140,8 +142,18 @@ void View::keyPressEvent(QKeyEvent *event)
     }
     else if(event->key() == Qt::Key_E) {
         m_vertical += 1;
-    } else if(event->key() == Qt::Key_T) {
+    }
+    else if(event->key() == Qt::Key_T) {
         m_sim.toggleWire();
+    }
+    else if(event->key() == Qt::Key_1) {
+        m_castPushForce = -20;
+    }
+    else if(event->key() == Qt::Key_2) {
+        m_castPushForce = 10;
+    }
+    else if(event->key() == Qt::Key_3) {
+        m_castPushForce = 20;
     }
 }
 
@@ -174,19 +186,53 @@ void View::keyReleaseEvent(QKeyEvent *event)
     else if(event->key() == Qt::Key_E) {
         m_vertical -= 1;
     }
+    else if(event->key() == Qt::Key_Space) {
+        m_paused = !m_paused;
+    }
+    else if(event->key() == Qt::Key_1) {
+        m_castPushForce = 0;
+    }
+    else if(event->key() == Qt::Key_2) {
+        m_castPushForce = 0;
+    }
+    else if(event->key() == Qt::Key_3) {
+        m_castPushForce = 0;
+    }
 }
 
 void View::tick()
 {
-    float seconds = m_time.restart() * 0.001f;
-    m_sim.update(seconds);
+    float seconds = m_time.restart() * 0.00001f;
+    if (!m_paused) {
+        if (m_castPushForce != 0){
+            Vector3f p(0, 0, 0);
+            Vector3f d(0, 0, -1);
+            d.normalize();
+
+            float aspectRatio = (float) this->width() / this->height();
+            Matrix4f invView = (m_camera.getScaleMatrix(aspectRatio) * m_camera.getView()).inverse();
+
+            Vector4f hp = (invView * Vector4f(p.x(), p.y(), p.z(), 1));
+            Vector4f hd = (invView * Vector4f(d.x(), d.y(), d.z(), 0));
+
+            Vector3f op = (hp / hp.w()).head<3>();
+            Vector3f od = (hd).head<3>().normalized();
+
+            m_sim.castClickRay(Vector3f(op[0], op[1], op[2]), Vector3f(od[0], od[1], od[2]), m_castPushForce);
+        }
+        else {
+            m_sim.zeroPush();
+        }
+
+        m_sim.update(seconds);
+    }
 
     auto look = m_camera.getLook();
     look.y() = 0;
     look.normalize();
     Eigen::Vector3f perp(-look.z(), 0, look.x());
     Eigen::Vector3f moveVec = m_forward * look + m_sideways * perp + m_vertical * Eigen::Vector3f::UnitY();
-    moveVec *= seconds;
+    moveVec *= seconds * 200;
     m_camera.move(moveVec);
     // Flag this view for repainting (Qt will call paintGL() soon after)
     update();

@@ -21,8 +21,12 @@ win32 {
 
 SOURCES += \
     libs/glew-1.10.0/src/glew.c \
+    src/collisionobject.cpp \
     src/main.cpp \
     src/mainwindow.cpp \
+    src/solver.cpp \
+    src/system.cpp \
+    src/tet.cpp \
     src/view.cpp \
     src/viewformat.cpp \
     src/graphics/Shader.cpp \
@@ -34,7 +38,12 @@ SOURCES += \
 
 HEADERS += \
     libs/glew-1.10.0/include/GL/glew.h \
+    src/collisionobject.h \
+    src/main.h \
     src/mainwindow.h \
+    src/solver.h \
+    src/system.h \
+    src/tet.h \
     src/view.h \
     src/viewformat.h \
     src/graphics/Shader.h \

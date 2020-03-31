@@ -29,6 +29,7 @@ private:
 
 private:
     void initializeGL();
+    void drawCrosshair();
     void paintGL();
     void resizeGL(int w, int h);
 
@@ -49,11 +50,15 @@ private:
     Camera m_camera;
     Shader *m_shader;
 
+    float m_castPushForce;
+
     int m_forward, m_sideways, m_vertical;
 
     int m_lastX, m_lastY;
 
     bool m_capture;
+
+    bool m_paused;
 
 private slots:
     void tick();

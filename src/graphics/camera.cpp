@@ -12,6 +12,7 @@ Camera::Camera()
       m_zoom(1),
       m_view(Eigen::Matrix4f::Identity()),
       m_proj(Eigen::Matrix4f::Identity()),
+      m_scale(Eigen::Matrix4f::Identity()),
       m_orbit(false)
 {
 
@@ -134,6 +135,19 @@ const Eigen::Matrix4f &Camera::getView()
         m_viewDirty = false;
     }
     return m_view;
+}
+
+const Eigen::Matrix4f &Camera::getScaleMatrix(float aspectRatio)
+{
+    float heightAngleRads = M_PI * m_fovY / 360.f; //We need half the angle
+    float tanThetaH = tan(heightAngleRads);
+    float tanThetaW = aspectRatio * tanThetaH;
+
+    m_scale = Eigen::Matrix4f::Identity();
+    m_scale(0, 0) = 1 / tanThetaW;
+    m_scale(1, 1) = 1 / tanThetaH;
+
+    return m_scale;
 }
 
 const Eigen::Matrix4f &Camera::getProjection()

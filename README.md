@@ -2,6 +2,9 @@
 
 ## Running
 
+\* If there's a few Eigen warnings when you run the app, just hit ignore on
+them. I don't think they affect how the simulation runs.
+
 I'm submitting a Qt Creator project setup. It's run with the following
 arguments:
 
